@@ -11,8 +11,8 @@ use amethyst::{
 
 use amethyst::core::timing::Time;
 
-pub const ARENA_HEIGHT: f32 = 100.0;
-pub const ARENA_WIDTH: f32 = 100.0;
+pub const ARENA_HEIGHT: f32 = 300.0;
+pub const ARENA_WIDTH: f32 = 300.0;
 
 pub const PADDLE_HEIGHT: f32 = 16.0;
 pub const PADDLE_WIDTH: f32 = 32.0;
@@ -21,32 +21,12 @@ pub const BALL_VELOCITY_X: f32 = 75.0;
 pub const BALL_VELOCITY_Y: f32 = 50.0;
 pub const BALL_RADIUS: f32 = 2.0;
 
-/// ScoreBoard contains the actual score data
-#[derive(Default)]
-pub struct ScoreBoard {
-    pub score_left: i32,
-    pub score_right: i32,
-}
-
-/// ScoreText contains the ui text components that display the score
-pub struct ScoreText {
-    pub p1_score: Entity,
-    pub p2_score: Entity,
-}
-
-pub struct Ball {
-    pub velocity: [f32; 2],
-    pub radius: f32
-}
-
-impl Component for Ball {
-    type Storage = DenseVecStorage<Self>;
-}
-
 #[derive(PartialEq, Eq)]
 pub enum Side {
-    Left,
-    Right
+    Empty,
+    White,
+    Black
+
 }
 
 pub struct Paddle {
@@ -75,6 +55,7 @@ pub struct Pong{
     sprite_sheet_handle: Option<Handle<SpriteSheet>>
 }
 
+
 pub struct Stone {
     pub side: Side,
 }
@@ -96,11 +77,12 @@ impl SimpleState for Pong {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
         world.register::<Stone>();
-
-        //self.sprite_sheet_handle.replace(load_sprite_sheet(world));
+        
         let sr = load_stone_sprite_sheet(world);
-        initialise_stones(world, sr);
+        initialise_stones(world, sr.clone());
         initialise_camera(world);
+        self.sprite_sheet_handle.replace(sr);
+        
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
@@ -112,7 +94,7 @@ impl SimpleState for Pong {
 fn initialise_camera(world: &mut World) {
     // Setup camera in a way that our screen covers whole arena and (0, 0) is in the bottom left.
     let mut transform = Transform::default();
-    transform.set_translation_xyz(ARENA_WIDTH * 0.5, ARENA_HEIGHT * 0.5, 1.0);
+    transform.set_translation_xyz(ARENA_WIDTH * 0.0, ARENA_HEIGHT * 0.0, 1.0);
 
     world
         .create_entity()
@@ -123,19 +105,20 @@ fn initialise_camera(world: &mut World) {
 
 
 fn initialise_stones(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
-    let sprite_render = SpriteRender::new(sprite_sheet_handle, 0);
-    for i in 0.. 3 {
-        let mut left_transform = Transform::default();
-        left_transform.set_translation_xyz(PADDLE_WIDTH * i as f32, ARENA_WIDTH / 2.0f32, 0.0);
-        let scale = Vector3::new(0.5, 0.5, 1.0);
-        left_transform.set_scale(scale);
+    let sprite_render = SpriteRender::new(sprite_sheet_handle, 2);
+    for i in 0.. 9 {
+        for y in 0..9 {
 
-        world
-            .create_entity()
-            .with(sprite_render.clone())
-            .with(Stone::new(Side::Left))
-            .with(left_transform)
-            .build();
+            let mut left_transform = Transform::default();
+            left_transform.set_translation_xyz((16.0 +  i as f32 * 32.0) - ((9.0 * 32.0) / 2.0), (16.0 +  y as f32 * 32.0) - ((9.0 * 32.0) / 2.0), 0.0);
+
+            world
+                .create_entity()
+                .with(sprite_render.clone())
+                .with(Stone::new(Side::Empty))
+                .with(left_transform)
+                .build();
+        }
     }    
 }
 
@@ -147,7 +130,7 @@ fn load_stone_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
         let loader = world.read_resource::<Loader>();
         let texture_storage = world.read_resource::<AssetStorage<Texture>>();
         loader.load(
-            "texture/go_sprite_sheet.png",
+            "texture/go_spritesheet.png",
             ImageFormat::default(),
             (),
             &texture_storage,
