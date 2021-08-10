@@ -28,6 +28,21 @@ pub enum Side {
     Black
 
 }
+pub struct Message {
+    pub value: usize
+}
+
+impl Message {
+    pub fn new() -> Message {
+        Message {
+            value: 0
+        }
+    }
+}
+
+impl Component for Message {
+    type Storage = DenseVecStorage<Self>;
+}
 
 pub struct Paddle {
     pub side: Side,
@@ -50,7 +65,7 @@ impl Component for Paddle {
 }
 
 #[derive(Default)]
-pub struct Pong{
+pub struct Pong {
     ball_spawn_timer: Option<f32>,
     sprite_sheet_handle: Option<Handle<SpriteSheet>>
 }
@@ -58,6 +73,7 @@ pub struct Pong{
 
 pub struct Stone {
     pub side: Side,
+    pub index: usize
 }
 
 impl Component for Stone {
@@ -65,9 +81,10 @@ impl Component for Stone {
 }
 
 impl Stone {
-    fn new(side: Side) -> Stone {
+    fn new(side: Side, index: usize) -> Stone {
         Stone {
-            side
+            side,
+            index
         }
     }
 }
@@ -105,7 +122,7 @@ fn initialise_camera(world: &mut World) {
 
 
 fn initialise_stones(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
-    let sprite_render = SpriteRender::new(sprite_sheet_handle, 2);
+    let sprite_render = SpriteRender::new(sprite_sheet_handle, 0);
     for i in 0.. 9 {
         for y in 0..9 {
 
@@ -115,11 +132,11 @@ fn initialise_stones(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>
             world
                 .create_entity()
                 .with(sprite_render.clone())
-                .with(Stone::new(Side::Empty))
+                .with(Stone::new(Side::Empty, i * 9 + y))
                 .with(left_transform)
                 .build();
         }
-    }    
+    }
 }
 
 fn load_stone_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {

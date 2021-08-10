@@ -43,7 +43,8 @@ fn main() -> amethyst::Result<()> {
       )?
       .with_bundle(TransformBundle::new())?
       .with_bundle(input_bundle)?
-      .with(systems::StoneSystem::default(), "stone_system", &["input_system"]);
+      .with(systems::MessageSystem::default(), "message_system", &["input_system"])
+      .with(systems::StoneSystem::new(), "stone_system", &["message_system", "input_system"]);
 
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, Pong::default(), game_data)?;
