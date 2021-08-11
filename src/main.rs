@@ -7,14 +7,15 @@ use amethyst::{
     },
     utils::application_root_dir,
 };
-use amethyst::ui::{RenderUi, UiBundle};
+
 use amethyst::core::transform::TransformBundle;
 use amethyst::input::{InputBundle, StringBindings};
 
-mod pong;
+mod go;
 mod systems;
+mod utility;
 
-use crate::pong::Pong;
+use crate::go::Go;
 
 fn main() -> amethyst::Result<()> {
     //App prelude
@@ -47,7 +48,7 @@ fn main() -> amethyst::Result<()> {
       .with(systems::StoneSystem::new(), "stone_system", &["message_system", "input_system"]);
 
     let assets_dir = app_root.join("assets");
-    let mut game = Application::new(assets_dir, Pong::default(), game_data)?;
+    let mut game = Application::new(assets_dir, Go::default(), game_data)?;
     game.run();
 
     Ok(())

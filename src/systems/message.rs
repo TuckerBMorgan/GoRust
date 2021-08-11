@@ -1,20 +1,18 @@
-use std::net::{TcpListener, TcpStream};
+use std::net::{TcpListener};
 
-const start_server_value: usize = 100;
-const start_client_value: usize = 101;
+const START_SERVER_MESSAGE: usize = 100;
+const START_CLIENT_MESSAGE: usize = 101;
 
 use amethyst::{
-    core::SystemDesc,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadStorage, System, SystemData, World, WriteStorage},
+    ecs::{Join,System, SystemData,WriteStorage},
 };
 
 use std::thread;
 use std::sync::mpsc::channel;
-use std::sync::mpsc;
 use std::sync::mpsc::{Sender, Receiver};
 
-use crate::pong::{Message};
+use crate::go::{Message};
 
 
 #[derive(SystemDesc, Default)]
@@ -26,13 +24,11 @@ pub struct MessageSystem {
 }
 
 impl <'s> System<'s> for MessageSystem {
-    type SystemData = (
-        WriteStorage<'s, Message>
-    );
+    type SystemData = WriteStorage<'s, Message>;
 
-    fn run(&mut self, (mut messages): Self::SystemData) {
+    fn run(&mut self, mut messages: Self::SystemData) {
         for message in (&mut messages).join() {
-            if message.value == start_server_value {
+            if message.value == START_SERVER_MESSAGE {
                 self.client_or_server = 1;
                 let (to_server, server_reciver) = channel(); 
                 let (to_game, game_reciver) = channel();    
@@ -41,7 +37,7 @@ impl <'s> System<'s> for MessageSystem {
                 self.from_networking_thread.replace(game_reciver);
                 self.thread_handle.replace(handle);
             }
-            else if message.value == start_client_value {
+            else if message.value == START_CLIENT_MESSAGE {
                 self.client_or_server = 2;
             }
         }

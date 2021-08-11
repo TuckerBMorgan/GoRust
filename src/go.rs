@@ -1,25 +1,20 @@
 use amethyst::{
     assets::{AssetStorage, Loader, Handle},
     core::transform::Transform,
-    core::math::{Vector3
-    },
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
-    ecs::{Component, DenseVecStorage, Entity},
-    ui::{Anchor, LineMode, TtfFormat, UiText, UiTransform},
+    ecs::{Component, DenseVecStorage},
 };
 
-use amethyst::core::timing::Time;
 
 pub const ARENA_HEIGHT: f32 = 300.0;
 pub const ARENA_WIDTH: f32 = 300.0;
 
-pub const PADDLE_HEIGHT: f32 = 16.0;
-pub const PADDLE_WIDTH: f32 = 32.0;
-
-pub const BALL_VELOCITY_X: f32 = 75.0;
-pub const BALL_VELOCITY_Y: f32 = 50.0;
-pub const BALL_RADIUS: f32 = 2.0;
+#[derive(Default, Copy, Clone)]
+pub struct StoneData {
+    pub state: usize,
+    pub alive: bool
+}
 
 #[derive(PartialEq, Eq)]
 pub enum Side {
@@ -28,48 +23,43 @@ pub enum Side {
     Black
 
 }
-pub struct Message {
-    pub value: usize
+
+pub struct Go {
+    pub ball_spawn_timer: Option<f32>,
+    pub sprite_sheet_handle: Option<Handle<SpriteSheet>>,
+    pub board: [StoneData; 81],
+    pub turn_number: i32
 }
 
-impl Message {
-    pub fn new() -> Message {
-        Message {
-            value: 0
+impl Default for Go {
+    fn default() -> Go {
+        Go {
+            ball_spawn_timer: None,
+            sprite_sheet_handle: None,
+            board: [StoneData::default(); 81],
+            turn_number: 0
         }
     }
 }
 
-impl Component for Message {
-    type Storage = DenseVecStorage<Self>;
-}
+impl SimpleState for Go {
 
-pub struct Paddle {
-    pub side: Side,
-    pub width: f32,
-    pub height: f32
-}
-
-impl Paddle {
-    fn new(side: Side) -> Paddle {
-        Paddle {
-            side,
-            width: PADDLE_WIDTH,
-            height: PADDLE_HEIGHT
-        }
+    fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+        let world = data.world;
+        world.register::<Stone>();
+        
+        let sr = load_stone_sprite_sheet(world);
+        initialise_stones(world, sr.clone());
+        initialise_camera(world);
+        self.sprite_sheet_handle.replace(sr);
+        
     }
-}
 
-impl Component for Paddle {
-    type Storage = DenseVecStorage<Self>;
-}
+    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+        Trans::None
+    }
 
-#[derive(Default)]
-pub struct Pong {
-    ball_spawn_timer: Option<f32>,
-    sprite_sheet_handle: Option<Handle<SpriteSheet>>
 }
-
 
 pub struct Stone {
     pub side: Side,
@@ -89,24 +79,22 @@ impl Stone {
     }
 }
 
-impl SimpleState for Pong {
-
-    fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
-        let world = data.world;
-        world.register::<Stone>();
-        
-        let sr = load_stone_sprite_sheet(world);
-        initialise_stones(world, sr.clone());
-        initialise_camera(world);
-        self.sprite_sheet_handle.replace(sr);
-        
-    }
-
-    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
-        Trans::None
-    }
-
+pub struct Message {
+    pub value: usize
 }
+
+impl Message {
+    pub fn new() -> Message {
+        Message {
+            value: 0
+        }
+    }
+}
+
+impl Component for Message {
+    type Storage = DenseVecStorage<Self>;
+}
+
 
 fn initialise_camera(world: &mut World) {
     // Setup camera in a way that our screen covers whole arena and (0, 0) is in the bottom left.
