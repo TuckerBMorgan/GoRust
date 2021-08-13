@@ -1,3 +1,5 @@
+/*
+#[allow(dead_code)]
 use std::net::{TcpListener};
 
 const START_SERVER_MESSAGE: usize = 100;
@@ -51,3 +53,5 @@ impl <'s> System<'s> for MessageSystem {
 fn server_thread(from_game: Receiver<usize>, to_game: Sender<usize>) {
     let listener = TcpListener::bind("127.0.0.1:80").unwrap();
 }
+
+*/

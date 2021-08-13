@@ -16,13 +16,6 @@ pub struct StoneData {
     pub alive: bool
 }
 
-#[derive(PartialEq, Eq)]
-pub enum Side {
-    Empty,
-    White,
-    Black
-
-}
 
 pub struct Go {
     pub ball_spawn_timer: Option<f32>,
@@ -55,14 +48,9 @@ impl SimpleState for Go {
         
     }
 
-    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
-        Trans::None
-    }
-
 }
 
 pub struct Stone {
-    pub side: Side,
     pub index: usize
 }
 
@@ -71,14 +59,13 @@ impl Component for Stone {
 }
 
 impl Stone {
-    fn new(side: Side, index: usize) -> Stone {
+    fn new(index: usize) -> Stone {
         Stone {
-            side,
             index
         }
     }
 }
-
+/*
 pub struct Message {
     pub value: usize
 }
@@ -94,7 +81,7 @@ impl Message {
 impl Component for Message {
     type Storage = DenseVecStorage<Self>;
 }
-
+*/
 
 fn initialise_camera(world: &mut World) {
     // Setup camera in a way that our screen covers whole arena and (0, 0) is in the bottom left.
@@ -120,7 +107,7 @@ fn initialise_stones(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>
             world
                 .create_entity()
                 .with(sprite_render.clone())
-                .with(Stone::new(Side::Empty, i * 9 + y))
+                .with(Stone::new(i * 9 + y))
                 .with(left_transform)
                 .build();
         }

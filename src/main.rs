@@ -44,8 +44,11 @@ fn main() -> amethyst::Result<()> {
       )?
       .with_bundle(TransformBundle::new())?
       .with_bundle(input_bundle)?
-      .with(systems::MessageSystem::default(), "message_system", &["input_system"])
-      .with(systems::StoneSystem::new(), "stone_system", &["message_system", "input_system"]);
+      //.with(systems::MessageSystem::default(), "message_system", &["input_system"])
+      .with(systems::PlayerInputSystem::default(), "player_input", &["input_system"])
+      .with(systems::AISystem::default(), "ai_system", &[])
+      .with(systems::LayoutSystem{}, "layout_system", &["ai_system", "player_input"])
+      .with(systems::StoneSystem::new(), "stone_system", &["layout_system"]);
 
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, Go::default(), game_data)?;
