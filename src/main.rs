@@ -1,7 +1,7 @@
 use amethyst::{
     prelude::*,
     renderer::{
-        plugins::{RenderFlat2D, RenderToWindow},
+        plugins::{RenderToWindow, RenderShaded3D},
         types::DefaultBackend,
         RenderingBundle,
     },
@@ -11,11 +11,12 @@ use amethyst::{
 use amethyst::core::transform::TransformBundle;
 use amethyst::input::{InputBundle, StringBindings};
 
-mod go;
+mod bangbang;
 mod systems;
 mod utility;
 
-use crate::go::Go;
+
+use crate::bangbang::BangBang;
 
 fn main() -> amethyst::Result<()> {
     //App prelude
@@ -37,21 +38,22 @@ fn main() -> amethyst::Result<()> {
                 // The RenderToWindow plugin provides all the scaffolding for opening a window and drawing on it
                 .with_plugin(
                     RenderToWindow::from_config_path(display_config_path)?
-                        .with_clear([0.0, 0.0, 0.0, 1.0]),
+                        .with_clear([0.39, 0.58, 0.92, 1.0]),
                 )
                 // RenderFlat2D plugin is used to render entities with a `SpriteRender` component.
-            .with_plugin(RenderFlat2D::default()),
+            .with_plugin(RenderShaded3D::default()),
       )?
       .with_bundle(TransformBundle::new())?
       .with_bundle(input_bundle)?
-      //.with(systems::MessageSystem::default(), "message_system", &["input_system"])
       .with(systems::PlayerInputSystem::default(), "player_input", &["input_system"])
-      .with(systems::AISystem::default(), "ai_system", &[])
-      .with(systems::LayoutSystem{}, "layout_system", &["ai_system", "player_input"])
-      .with(systems::StoneSystem::new(), "stone_system", &["layout_system"]);
+      .with(systems::CollisionSystem::default(), "collision_system", &["player_input"])
+      .with(systems::BallSystem::default(), "ball_system", &["player_input", "collision_system"])
+      .with(systems::PlayerSystem::default(), "player_system", &["player_input", "collision_system"])
+      .with(systems::BulletSystem::default(), "bullet_system", &["player_system", "collision_system"])
+      .with(systems::CleanupSystem::default(), "cleanup_system", &["bullet_system"]);
 
     let assets_dir = app_root.join("assets");
-    let mut game = Application::new(assets_dir, Go::default(), game_data)?;
+    let mut game = Application::new(assets_dir, BangBang::default(), game_data)?;
     game.run();
 
     Ok(())
