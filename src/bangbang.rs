@@ -50,6 +50,17 @@ impl KeyMessage {
 }
 
 
+pub enum CollisionMessageType {
+    BulletBall,
+    PlayerBall
+}
+
+impl Default for CollisionMessageType {
+    fn default() -> CollisionMessageType {
+        CollisionMessageType::BulletBall
+    }
+}
+
 pub struct CollisionMessage {
     pub entity_a: Entity,
     pub entity_b: Entity
@@ -64,16 +75,23 @@ impl CollisionMessage {
     }
 }
 
+#[derive(Default)]
+pub struct KilledEnemyMessage {
+}
+
+
 pub struct BangBang {
     pub key_messages: Vec<KeyMessage>,
-    pub collision_messages: Vec<CollisionMessage>
+    pub collision_messages: Vec<CollisionMessage>,
+    pub killed_enemy_messages: Vec<KilledEnemyMessage>
 }
 
 impl Default for BangBang {
     fn default() -> BangBang {
         BangBang {
             key_messages: vec![],
-            collision_messages: vec![]
+            collision_messages: vec![],
+            killed_enemy_messages: vec![]
         }
     }
 }
@@ -85,6 +103,10 @@ impl BangBang {
 
     pub fn add_collision_message(&mut self, message: CollisionMessage) {
         self.collision_messages.push(message);
+    }
+
+    pub fn add_killed_enemy_message(&mut self, message: KilledEnemyMessage) {
+        self.killed_enemy_messages.push(message);
     }
 }
 
@@ -107,18 +129,7 @@ impl SimpleState for BangBang {
 
         let mtl = load_material(world);
         let mesh = load_mesh(world);
-        for i in 0..4 {
-            let mut transform = Transform::default();
 
-            transform.set_translation_xyz(0.0, 0.0, 0.0);
-
-            world.create_entity().
-                with(transform).
-                with(mesh.clone()).
-                with(mtl.clone()).
-                with(SphereCollider::new(1.0)).
-                with(Ball{index: i}).build();
-        }
 
         let light1 : Light = PointLight {
             intensity: 700.0,

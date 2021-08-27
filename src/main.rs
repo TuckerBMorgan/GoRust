@@ -46,12 +46,13 @@ fn main() -> amethyst::Result<()> {
       .with_bundle(TransformBundle::new())?
       .with_bundle(input_bundle)?
       .with(systems::PlayerInputSystem::default(), "player_input", &["input_system"])
+      .with(systems::SpawnerSystem::default(), "spawner_system", &["input_system"])
       .with(systems::CollisionSystem::default(), "collision_system", &["player_input"])
       .with(systems::BallSystem::default(), "ball_system", &["player_input", "collision_system"])
+      .with(systems::RusherSystem::default(), "rusher_system", &["player_input", "collision_system"])
       .with(systems::PlayerSystem::default(), "player_system", &["player_input", "collision_system"])
       .with(systems::BulletSystem::default(), "bullet_system", &["player_system", "collision_system"])
       .with(systems::CleanupSystem::default(), "cleanup_system", &["bullet_system"]);
-
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, BangBang::default(), game_data)?;
     game.run();

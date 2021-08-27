@@ -5,7 +5,7 @@ use amethyst::{
     derive::SystemDesc,
 };
 
-
+const BULLET_SPEED : f32 = 0.5;
 
 #[derive(Default, Copy, Clone)]
 pub struct Bullet {
@@ -39,16 +39,16 @@ impl<'s> System<'s> for BulletSystem {
         for (bullet, transform) in (&mut bullets, &mut transforms).join() {
             let mut update_vector = Vector3::new(0.0, 0.0, 0.0);
             if bullet.direction == 0 {
-                update_vector = Vector3::new(0.0, 0.0, -0.1);
+                update_vector = Vector3::new(0.0, 0.0, -BULLET_SPEED);
             }
             else if bullet.direction == 1 {
-                update_vector = Vector3::new(0.1, 0.0, 0.0);
+                update_vector = Vector3::new(BULLET_SPEED, 0.0, 0.0);
             }
             else if bullet.direction == 2 {
-                update_vector = Vector3::new(0.0, 0.0, 0.1);
+                update_vector = Vector3::new(0.0, 0.0, BULLET_SPEED);
             }
             else if bullet.direction == 3 {
-                update_vector = Vector3::new(-0.1, 0.0, 0.0);
+                update_vector = Vector3::new(-BULLET_SPEED, 0.0, 0.0);
             }
             transform.set_translation_xyz(transform.translation().x + update_vector.x,
                                          0.0,
