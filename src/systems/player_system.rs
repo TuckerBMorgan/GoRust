@@ -9,10 +9,13 @@ use amethyst::{
     assets::Handle
 };
 
+use std::collections::HashMap;
+
 use crate::bangbang::{Player, BangBang, KeyMessageState};
 use crate::systems::{SphereCollider, Bullet};
 
 const PLAYER_SPEED : f32 = 0.1f32;
+const RELOAD_SPEED : f32 = 0.2532;
 
 #[derive(SystemDesc, Default)]
 pub struct PlayerSystem {
@@ -23,13 +26,14 @@ pub struct PlayerSystem {
     next_bullet_timer: f32
 }
 
+
 impl<'s> System<'s> for PlayerSystem {
     type SystemData = (
         Write<'s, BangBang>,
         WriteStorage<'s, Player>,
         WriteStorage<'s, Transform>,
         Read<'s, LazyUpdate>,
-        ReadExpect<'s, Handle<Mesh>>,
+        ReadExpect<'s, HashMap<String, Handle<Mesh>>>,
         ReadExpect<'s, Handle<Material>>,
         Read<'s, Time>
     );
@@ -95,7 +99,7 @@ impl<'s> System<'s> for PlayerSystem {
             if create_bullet && self.next_bullet_timer == 0.0 {
                 let mut bullet_transform = Transform::default();
                 bullet_transform.set_translation_xyz(transform.translation().x, transform.translation().y, transform.translation().z);
-                let at_c = at.clone();
+                let at_c = at["sphere"].clone();
                 let mat_c = mat.clone();
                 lz.exec_mut(move|world: &mut World| {
                     world.create_entity()
@@ -105,7 +109,7 @@ impl<'s> System<'s> for PlayerSystem {
                     .with(Bullet::new(bullet_direction))
                     .with(SphereCollider::new(1.0)).build();
                 });
-                self.next_bullet_timer = 0.5f32;
+                self.next_bullet_timer = RELOAD_SPEED;
             }
         }
 

@@ -7,13 +7,15 @@ use amethyst::{
     renderer::{Camera, Texture, Material, Mesh, MaterialDefaults},
     renderer::shape::Shape,
     renderer::rendy::mesh::{Normal, Position, Tangent, TexCoord},
-    ecs::{Component, DenseVecStorage, Entity},
+    ecs::{Component, DenseVecStorage, Entity, Join},
     renderer::palette::{LinSrgba, Srgb},
     renderer::loaders::load_from_linear_rgba,
     winit::{VirtualKeyCode}
 };
 
-use crate::systems::{Ball, SphereCollider};
+use std::collections::HashMap;
+
+use crate::systems::{SphereCollider, Bullet, Enemy};
 
 pub const ARENA_HEIGHT: f32 = 1000.0;
 pub const ARENA_WIDTH: f32 = 1000.0;
@@ -49,28 +51,35 @@ impl KeyMessage {
     }
 }
 
+#[derive(Default)]
+pub struct GameStateForSystem {
+    pub should_reset: bool
+}
+
 
 pub enum CollisionMessageType {
-    BulletBall,
-    PlayerBall
+    BulletEnemy,
+    PlayerEnemy
 }
 
 impl Default for CollisionMessageType {
     fn default() -> CollisionMessageType {
-        CollisionMessageType::BulletBall
+        CollisionMessageType::BulletEnemy
     }
 }
 
 pub struct CollisionMessage {
     pub entity_a: Entity,
-    pub entity_b: Entity
+    pub entity_b: Entity,
+    pub collision_message_type: CollisionMessageType
 }
 
 impl CollisionMessage {
-    pub fn new(entity_a: Entity, entity_b: Entity) -> CollisionMessage {
+    pub fn new(entity_a: Entity, entity_b: Entity, collision_message_type: CollisionMessageType) -> CollisionMessage {
         CollisionMessage {
             entity_a,
-            entity_b
+            entity_b,
+            collision_message_type
         }
     }
 }
@@ -114,6 +123,8 @@ impl SimpleState for BangBang {
 
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
+
+        world.insert(GameStateForSystem::default());
         
         let mtl = load_material(world);
         let floor = load_floor(world);
@@ -149,12 +160,54 @@ impl SimpleState for BangBang {
             with(Transform::default()).
             with(mesh.clone()).
             with(mtl.clone()).
+            with(SphereCollider::new(1.0)).
             with(Player::default()).build();
 
         initialise_camera(world, entity_id);
         world.insert(mtl);
-        world.insert(mesh);
+
+        let mut mesh_map = HashMap::new();
+        mesh_map.insert(String::from("floor"), floor);
+        mesh_map.insert(String::from("sphere"), mesh);
+        world.insert(mesh_map);
+
     }
+
+    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+        let should_reset =  {data.world.write_resource::<GameStateForSystem>().should_reset};
+
+
+        if should_reset {
+            let enemies_to_delete = {
+                let enemies = {data.world.read_storage::<Enemy>()};
+                let entities = data.world.entities();
+                let mut etd = vec![];
+                for (_, entity) in (&enemies, &entities).join() {
+                    etd.push(entity.clone());
+                }
+                etd
+            };
+
+            let bullets_to_delete = {
+                let bullets = {data.world.read_storage::<Bullet>()};
+                let entities = data.world.entities();
+                let mut btd = vec![];
+                for (_, entity) in (&bullets, &entities).join() {
+                    btd.push(entity.clone());
+                }
+                btd
+            };
+
+            let _ = data.world.delete_entities(&enemies_to_delete);
+            let _ = data.world.delete_entities(&bullets_to_delete);
+            data.world.write_resource::<GameStateForSystem>().should_reset = false;
+        }
+        Trans::None
+    }
+}
+
+impl BangBang {
+
 }
 
 

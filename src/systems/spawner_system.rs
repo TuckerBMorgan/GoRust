@@ -3,21 +3,21 @@ use amethyst::{
     core::transform::Transform,
     prelude::*,
     renderer::light::{Light, PointLight},
-    renderer::palette::{LinSrgba, Srgb},
-    ecs::{System, WriteStorage, ReadStorage, Read, Join, SystemData, DenseVecStorage, Component, LazyUpdate, Write, ReadExpect},
+    renderer::palette::{Srgb},
+    ecs::{System, WriteStorage, ReadStorage, Join, SystemData, DenseVecStorage, Component, LazyUpdate, Write, ReadExpect},
     renderer::{Mesh, Material},
     derive::SystemDesc,
     assets::Handle
 };
 
 use rand::Rng;
+use std::collections::HashMap;
 use crate::bangbang::{BangBang, Player};
 use crate::systems::{Ball, Rusher};
 use crate::systems::SphereCollider;
 
 #[derive(Default, Copy, Clone)]
 pub struct Enemy {
-    enemy_id: usize
 }
 
 impl Component for Enemy {
@@ -46,7 +46,7 @@ impl<'s> System<'s> for SpawnerSystem {
         ReadStorage<'s, Player>,
         WriteStorage<'s, Transform>,
         Write<'s, LazyUpdate>,
-        ReadExpect<'s, Handle<Mesh>>,
+        ReadExpect<'s,HashMap<String, Handle<Mesh>>>,
         ReadExpect<'s, Handle<Material>>,
     );
 
@@ -75,7 +75,7 @@ impl<'s> System<'s> for SpawnerSystem {
                 ..PointLight::default()
             }.into();
 
-            let at_c = mesh.clone();
+            let at_c = mesh["sphere"].clone();
             let mat_c = material.clone();
             if rng.gen_range(0.0, 1.0) > 0.1 {
                 lz.exec_mut(move|world: &mut World|{

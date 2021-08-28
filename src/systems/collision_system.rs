@@ -6,8 +6,8 @@ use amethyst:: {
 };
 
 
-use crate::bangbang::{BangBang, CollisionMessage, Player, KilledEnemyMessage};
-use crate::systems::{Ball, Bullet, Enemy};
+use crate::bangbang::{BangBang, CollisionMessage, CollisionMessageType, Player};
+use crate::systems::{Bullet, Enemy};
 
 #[derive(Default)]
 pub struct SphereCollider {
@@ -52,21 +52,21 @@ impl<'s> System<'s> for CollisionSystem {
                 }
                 let distance = (transform.translation() - other_transform.translation()).magnitude();
                 if distance < sphere_collider.radius + other_sphere_collider.radius {
-                    let collision_message = CollisionMessage::new(entity.clone(), other_entity.clone());
-                    game_state.add_collision_message(collision_message);
+                    let collision_message = CollisionMessage::new(entity.clone(), other_entity.clone(), CollisionMessageType::BulletEnemy);
+                    game_state.add_collision_message(collision_message, );
                 }
             }
         }
-        /*
-        for (sphere_collider, transform, entity, _) in (&sphere_colliders, &transforms, &entities, &bullets) {
-            for (player_sphere_collider, player_transform, player_entity, _) in (&sphere_colliders, &transforms, &entities, &player) {
+        
+        for (sphere_collider, transform, entity, _) in (&sphere_colliders, &transforms, &entities, &enemies).join() {
+            for (player_sphere_collider, player_transform, player_entity, _) in (&sphere_colliders, &transforms, &entities, &player).join() {
                 let distance = (transform.translation() - player_transform.translation()).magnitude();
                 if distance < sphere_collider.radius + player_sphere_collider.radius {
-                    let collision_message = CollisionMessage::new(entity.clone(), player_entity.clone());
+                    let collision_message = CollisionMessage::new(entity.clone(), player_entity.clone(), CollisionMessageType::PlayerEnemy);
                     game_state.add_collision_message(collision_message);
                 }
             }
         }
-        */
+        
     }
 }
