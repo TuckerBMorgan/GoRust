@@ -1,7 +1,9 @@
 (
   axes: {
-    "Attack": Emulated(pos: Key(W), neg: Key(S)),
-    "left_right": Emulated(pos: Key(A), neg: Key(D)),
+    "left_right": Emulated(pos: Key(D), neg: Key(A)),
+    "up_down": Emulated(pos: Key(S), neg: Key(W)),
+    "shoot_left_right": Emulated(pos: Key(Left), neg: Key(Right)),
+    "shoot_up_down": Emulated(pos: Key(Up), neg: Key(Down)),
   },
   actions: {},
 )

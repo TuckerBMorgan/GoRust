@@ -24,25 +24,29 @@ impl Component for Enemy {
     type Storage = DenseVecStorage<Self>;
 }
 
-
-#[derive(SystemDesc)]
-pub struct SpawnerSystem {
-    current_desired_amount_of_enemies: usize,
-    number_of_spawned_enemies: usize
+pub struct SpawnerInfo {
+    pub current_desired_amount_of_enemies: usize,
+    pub number_of_spawned_enemies: usize
 }
 
-impl Default for SpawnerSystem {
-    fn default() -> SpawnerSystem {
-        SpawnerSystem {
+impl Default for SpawnerInfo {
+    fn default() -> SpawnerInfo {
+        SpawnerInfo {
             current_desired_amount_of_enemies: 10,
             number_of_spawned_enemies: 0
         }
     }
 }
 
+
+#[derive(SystemDesc, Default)]
+pub struct SpawnerSystem {
+}
+
 impl<'s> System<'s> for SpawnerSystem {
     type SystemData = (
         Write<'s, BangBang>,
+        Write<'s, SpawnerInfo>,
         ReadStorage<'s, Player>,
         WriteStorage<'s, Transform>,
         Write<'s, LazyUpdate>,
@@ -50,7 +54,7 @@ impl<'s> System<'s> for SpawnerSystem {
         ReadExpect<'s, Handle<Material>>,
     );
 
-    fn run(&mut self, (mut game_state, player, mut transforms, lz, mesh, material): Self::SystemData) {
+    fn run(&mut self, (mut game_state, mut spawner_info, player, mut transforms, lz, mesh, material): Self::SystemData) {
 
         let mut player_position = Vector3::new(0.0, 0.0, 0.0);
         for (_player, transform) in (&player, &mut transforms).join() {
@@ -58,9 +62,11 @@ impl<'s> System<'s> for SpawnerSystem {
         }
 
         let enemies_killed_last_frame = game_state.killed_enemy_messages.len();
-        self.number_of_spawned_enemies -= enemies_killed_last_frame;
+        if spawner_info.number_of_spawned_enemies >= enemies_killed_last_frame {
+            spawner_info.number_of_spawned_enemies -= enemies_killed_last_frame;
+        }
         let mut rng = rand::thread_rng();
-        let balls_to_create = self.current_desired_amount_of_enemies - self.number_of_spawned_enemies;
+        let balls_to_create = spawner_info.current_desired_amount_of_enemies - spawner_info.number_of_spawned_enemies;
         for i in 0..balls_to_create {
             let mut transform = Transform::default();
 
@@ -103,7 +109,7 @@ impl<'s> System<'s> for SpawnerSystem {
 
                 });
             }
-            self.number_of_spawned_enemies += 1;
+            spawner_info.number_of_spawned_enemies += 1;
         }
         game_state.killed_enemy_messages = vec![];
     }

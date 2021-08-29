@@ -28,7 +28,6 @@ impl<'s> System<'s> for CleanupSystem {
                     killed_enemy_messages.push(KilledEnemyMessage::default());        
                 },
                 CollisionMessageType::PlayerEnemy => {
-                    //now we need to "reset" the gamedaddddddddd, so, dump shit yo
                     game_state_for_system.should_reset = true;
                     break;
                 }

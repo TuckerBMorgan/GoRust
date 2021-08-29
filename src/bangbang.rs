@@ -15,7 +15,7 @@ use amethyst::{
 
 use std::collections::HashMap;
 
-use crate::systems::{SphereCollider, Bullet, Enemy};
+use crate::systems::{SphereCollider, Bullet, Enemy, SpawnerInfo};
 
 pub const ARENA_HEIGHT: f32 = 1000.0;
 pub const ARENA_WIDTH: f32 = 1000.0;
@@ -170,6 +170,7 @@ impl SimpleState for BangBang {
         mesh_map.insert(String::from("floor"), floor);
         mesh_map.insert(String::from("sphere"), mesh);
         world.insert(mesh_map);
+        world.insert(SpawnerInfo::default());
 
     }
 
@@ -201,6 +202,7 @@ impl SimpleState for BangBang {
             let _ = data.world.delete_entities(&enemies_to_delete);
             let _ = data.world.delete_entities(&bullets_to_delete);
             data.world.write_resource::<GameStateForSystem>().should_reset = false;
+            data.world.write_resource::<SpawnerInfo>().number_of_spawned_enemies = 0;
         }
         Trans::None
     }
